@@ -1,4 +1,5 @@
 openshift.withCluster() {
+	def PROJECT_NAME=amq-s2i-raif
 	stage('Preparing AMQ Env') {
     	def sa = [
 		  "kind": "ServiceAccount",
@@ -14,12 +15,12 @@ openshift.withCluster() {
 			kind: "RoleBinding",
 			metadata: [
   				name: "broker-role-binding",
-  				namespace: "amq-s2i-raif"
+  				namespace: ${PROJECT_NAME}
 			],
 			roleRef: [
   				apiGroup: "rbac.authorization.k8s.io",
   				kind: "Role",
-  				name: "broker-role"
+  				name: "view"
 			],
 			subjects: [
 				[
