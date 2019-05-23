@@ -15,7 +15,7 @@ openshift.withCluster() {
 			kind: "RoleBinding",
 			metadata: [
   				name: "broker-role-binding",
-  				namespace: ${PROJECT_NAME}
+  				namespace: "${PROJECT_NAME}"
 			],
 			roleRef: [
   				apiGroup: "rbac.authorization.k8s.io",
