@@ -1,5 +1,5 @@
 openshift.withCluster() {
-	def PROJECT_NAME=amq-s2i-raif
+	def PROJECT_NAME="amq-s2i-raif"
 	stage('Preparing AMQ Env') {
     	def sa = [
 		  "kind": "ServiceAccount",
