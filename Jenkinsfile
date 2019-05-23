@@ -52,6 +52,7 @@ openshift.withCluster() {
 				]
 			]	
 		]
+		roleObject = openshift.create(role).object()
 
 		def roleBinding = [
 			apiVersion: "rbac.authorization.k8s.io/v1",
