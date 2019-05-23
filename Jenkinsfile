@@ -10,6 +10,48 @@ openshift.withCluster() {
 		]
     	saObject = openshift.create(sa).object()
 
+		def role= [
+			apiVersion: "authorization.openshift.io/v1",
+			kind: "Role",
+			metadata: [
+				name: "broker-role",
+	  			namespace: "${PROJECT_NAME}"
+			],
+			"rules": [
+		    [
+		        "apiGroups": [
+		            ""
+		        ],
+		        "attributeRestrictions": null,
+		        "resources": [
+		            "endpoints"
+		        ],
+		        "verbs": [
+		            "create",
+		            "delete",
+		            "deletecollection",
+		            "get",
+		            "list",
+		            "patch",
+		            "update",
+		            "watch"
+		        ]
+		    ],
+		    [
+		        "apiGroups": [
+		            ""
+		        ],
+		        "attributeRestrictions": null,
+		        "resources": [
+		            "namespaces"
+		        ],
+		        "verbs": [
+		            "get",
+		            "list"
+		        ]
+		    ]
+		]
+
 		def roleBinding = [
 			apiVersion: "rbac.authorization.k8s.io/v1",
 			kind: "RoleBinding",
@@ -20,7 +62,7 @@ openshift.withCluster() {
 			roleRef: [
   				apiGroup: "rbac.authorization.k8s.io",
   				kind: "Role",
-  				name: "view"
+  				name: "broker-role"
 			],
 			subjects: [
 				[
