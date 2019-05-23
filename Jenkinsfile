@@ -18,39 +18,41 @@ openshift.withCluster() {
 	  			namespace: "${PROJECT_NAME}"
 			],
 			"rules": [
-		    [
-		        "apiGroups": [
-		            ""
-		        ],
-		        "attributeRestrictions": null,
-		        "resources": [
-		            "endpoints"
-		        ],
-		        "verbs": [
-		            "create",
-		            "delete",
-		            "deletecollection",
-		            "get",
-		            "list",
-		            "patch",
-		            "update",
-		            "watch"
-		        ]
-		    ],
-		    [
-		        "apiGroups": [
-		            ""
-		        ],
-		        "attributeRestrictions": null,
-		        "resources": [
-		            "namespaces"
-		        ],
-		        "verbs": [
-		            "get",
-		            "list"
-		        ]
-		    ]
+				[
+				    "apiGroups": [
+				        ""
+				    ],
+				    "attributeRestrictions": null,
+				    "resources": [
+				        "endpoints"
+				    ],
+				    "verbs": [
+				        "create",
+				        "delete",
+				        "deletecollection",
+				        "get",
+				        "list",
+				        "patch",
+				        "update",
+				        "watch"
+				    ]
+				],
+				[
+				    "apiGroups": [
+				        ""
+				    ],
+				    "attributeRestrictions": null,
+				    "resources": [
+				        "namespaces"
+				    ],
+				    "verbs": [
+				        "get",
+				        "list"
+				    ]
+				]
+			]
 		]
+	]
 
 		def roleBinding = [
 			apiVersion: "rbac.authorization.k8s.io/v1",
