@@ -17,7 +17,7 @@ pipeline {
 	}
 	agent any
 	parameters {
-		string(name: 'APP_NAME', defaultValue: 'AMQ-BROKER', description: "Application Name - all resources use this name as a label")
+		string(name: 'APP_NAME', defaultValue: 'amq-broker', description: "Application Name - all resources use this name as a label use lowercase")
 	}
 	stages {
 		stage('initialise') {
