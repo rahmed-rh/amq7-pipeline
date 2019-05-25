@@ -100,24 +100,21 @@ pipeline {
 			steps {
 				script {
 					openshift.withCluster() {
-  						//openshift.verbose() // set logging level for subsequent operations executed (loglevel=8)
-  						def podsSelector = openshift.selector('po', [app: "${params.APP_NAME}"])
-  						podsSelector.withEach {
+						//openshift.verbose() // set logging level for subsequent operations executed (loglevel=8)
+						def podsSelector = openshift.selector('po', [app: "${params.APP_NAME}"])
+						podsSelector.withEach {
 							def podName = "${it.name()}"
 							echo "Pod: ${podName} will be deleted"
 							it.delete()
-							def currentPodsSelector = openshift.selector('po', "${podName}")
-							timeout(2) {
-								currentPodsSelector.watch {
+              def currentPodsSelector = openshift.selector('po', "${podName}")
+              currentPodsSelector.watch {
 									echo "Waiting for Pod ${podName} to recreated"
 									return it.count() = 1
 								}
-							}
 						}
 					}
 				}
 			}
 		}
-
 	}
 }
