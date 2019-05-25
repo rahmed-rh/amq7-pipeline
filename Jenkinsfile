@@ -88,7 +88,7 @@ pipeline {
                                           "-p VOLUME_CAPACITY=1Gi","-p AMQ_TRUSTSTORE=amq-broker.jks","-p AMQ_KEYSTORE=amq-broker.jks",
                     	                    "-p AMQ_TRUSTSTORE_PASSWORD=passw0rd","-p AMQ_KEYSTORE_PASSWORD=passw0rd","-p AMQ_CLUSTERED=true","-p AMQ_REPLICAS=3"
                                          ).narrow('statefulset')
-                                         echo "amqSts.status.currentReplicas: ${amqSts.status.currentReplicas}"
+                                         //echo "amqSts.status.currentReplicas: ${amqSts.status.currentReplicas}"
                                          echo "amqSts.spec.replicas: ${amqSts.spec.replicas}"
                      /*timeout(10) {
                             amqSts.watch {
