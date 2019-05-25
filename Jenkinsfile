@@ -47,14 +47,12 @@ pipeline {
 							if (!openshift.selector('secrets', 'amq-app-secret').exists()) {
                 // def amqSecretFile = readJSON file: "${workspace}@script/amq-app-secret.json"
 								def amqSecretFile = readFile("${workspace}@script/amq-app-secret.json")
-                def amqSecretWithLabel = openshift.create( amqSecretFile ).object()
-                echo "${amqSecretWithLabel}"
-
-                amqSecretWithLabel.metadata.put('labels', ["app": "${APP_NAME}"])
-
-                openshift.apply(amqSecretWithLabel) // Patch the object on the server
+                def amqSecretSelector = openshift.create( amqSecretFile ).object()
+                amqSecretSelector.metadata.put('labels', ["app": "${APP_NAME}"])
+                openshift.apply(amqSecretSelector) // Patch the object on the server
 
 							}
+              openshift.newBuild("registry.access.redhat.com/amq-broker-7/amq-broker-72-openshift:1.3","https://github.com/rahmed-rh/amq7.git")
 						}
 					}
 				}
