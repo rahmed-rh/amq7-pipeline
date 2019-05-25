@@ -88,17 +88,19 @@ pipeline {
                                           "-p VOLUME_CAPACITY=1Gi","-p AMQ_TRUSTSTORE=amq-broker.jks","-p AMQ_KEYSTORE=amq-broker.jks",
                     	                    "-p AMQ_TRUSTSTORE_PASSWORD=passw0rd","-p AMQ_KEYSTORE_PASSWORD=passw0rd","-p AMQ_CLUSTERED=true","-p AMQ_REPLICAS=3"
                                          ).narrow('statefulset')
-                     timeout(10) {
+                                         echo "amqSts.status.currentReplicas: ${amqSts.status.currentReplicas}"
+                                         echo "amqSts.spec.replicas: ${amqSts.spec.replicas}"
+                     /*timeout(10) {
                             amqSts.watch {
 
                                 // Within the body, the variable 'it' is bound to the watched Selector (i.e. builds)
                                 echo "So far, ${amqSts.name()} has created Stateful Sets: ${it.names()}"
+                                echo "amqSts.status.currentReplicas: ${amqSts.status.currentReplicas}"
                                 echo "amqSts.status.replicas: ${amqSts.status.replicas}"
-                                echo "amqSts.status.readyReplicas: ${amqSts.status.readyReplicas}"
                                 // End the watch only once a build object has been created.
-                                return (amqSts.status.replicas.equals(amqSts.status.readyReplicas))
+                                return (amqSts.status.replicas==amqSts.status.currentReplicas)
                             }
-                     }
+                     }/*
                 }
 
 						}
