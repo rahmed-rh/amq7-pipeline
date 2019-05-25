@@ -80,24 +80,24 @@ pipeline {
                      }
               }
               if (!openshift.selector('sts', 'broker-amq').exists()) {
-                openshift.process(
-                      "amq-broker-72-persistence-clustered-ssl",
-                      "-p APPLICATION_NAME=broker","-p AMQ_QUEUES=demoQueue","-p AMQ_ADDRESSES=demoTopic","-p AMQ_USER=amq-demo-user", "-p AMQ_PASSWORD=passw0rd",
-                      "-p AMQ_ROLE=amq","-p AMQ_SECRET=amq-app-secret","-p AMQ_DATA_DIR=/opt/amq/data","-p AMQ_DATA_DIR_LOGGING=true",
-                      "-p IMAGE=docker-registry.default.svc:5000/amq7-s2i/amq7-custom","-p AMQ_PROTOCOL=openwire,amqp,stomp,mqtt,hornetq",
-                      "-p VOLUME_CAPACITY=1Gi","-p AMQ_TRUSTSTORE=amq-broker.jks","-p AMQ_KEYSTORE=amq-broker.jks",
-	                    "-p AMQ_TRUSTSTORE_PASSWORD=passw0rd","-p AMQ_KEYSTORE_PASSWORD=passw0rd","-p AMQ_CLUSTERED=true","-p AMQ_REPLICAS=3"
-                     )
-                def amqModels= openshift.selector('sts', 'broker-amq')
-                 timeout(10) {
-                        amqModels.watch {
+                  def amqSts= openshift.newApp(
+                                          "amq-broker-72-persistence-clustered-ssl",
+                                          "-p APPLICATION_NAME=broker","-p AMQ_QUEUES=demoQueue","-p AMQ_ADDRESSES=demoTopic","-p AMQ_USER=amq-demo-user", "-p AMQ_PASSWORD=passw0rd",
+                                          "-p AMQ_ROLE=amq","-p AMQ_SECRET=amq-app-secret","-p AMQ_DATA_DIR=/opt/amq/data","-p AMQ_DATA_DIR_LOGGING=true",
+                                          "-p IMAGE=docker-registry.default.svc:5000/amq7-s2i/amq7-custom","-p AMQ_PROTOCOL=openwire,amqp,stomp,mqtt,hornetq",
+                                          "-p VOLUME_CAPACITY=1Gi","-p AMQ_TRUSTSTORE=amq-broker.jks","-p AMQ_KEYSTORE=amq-broker.jks",
+                    	                    "-p AMQ_TRUSTSTORE_PASSWORD=passw0rd","-p AMQ_KEYSTORE_PASSWORD=passw0rd","-p AMQ_CLUSTERED=true","-p AMQ_REPLICAS=3"
+                                         ).narrow('sts')
 
-                            // Within the body, the variable 'it' is bound to the watched Selector (i.e. builds)
-                            echo "So far, ${amqModels.name()} has created build: ${it.names()}"
-                            // End the watch only once a build object has been created.
-                            return (amqModels.status.replicas.equals(amqModels.status.readyReplicas))
-                        }
-                 }
+                     timeout(10) {
+                            amqSts.watch {
+
+                                // Within the body, the variable 'it' is bound to the watched Selector (i.e. builds)
+                                echo "So far, ${amqSts.name()} has created Stateful Sets: ${it.names()}"
+                                // End the watch only once a build object has been created.
+                                return (amqSts.status.replicas.equals(amqSts.status.readyReplicas))
+                            }
+                     }
                 }
 
 						}
