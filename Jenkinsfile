@@ -32,11 +32,15 @@ pipeline {
 
     stage('Create ImageStreams & Template') {
 			steps {
-        def AMQ_IMAGE_STREAM = "https://raw.githubusercontent.com/jboss-container-images/jboss-amq-7-broker-openshift-image/72-1.3.GA/amq-broker-7-image-streams.yaml"
-        def AMQ_TEMPLATE = "https://raw.githubusercontent.com/jboss-container-images/jboss-amq-7-broker-openshift-image/72-1.3.GA/templates/amq-broker-72-persistence-clustered-ssl.yaml"
-        echo "Creating/updating AMQ ImageStream & Template"
-        openshift.replace("--force", "-f ", "${AMQ_IMAGE_STREAM}")
-        openshift.replace("--force", "-f ", "${AMQ_TEMPLATE}")
+        script {
+					openshift.withCluster() {
+            def AMQ_IMAGE_STREAM = "https://raw.githubusercontent.com/jboss-container-images/jboss-amq-7-broker-openshift-image/72-1.3.GA/amq-broker-7-image-streams.yaml"
+            def AMQ_TEMPLATE = "https://raw.githubusercontent.com/jboss-container-images/jboss-amq-7-broker-openshift-image/72-1.3.GA/templates/amq-broker-72-persistence-clustered-ssl.yaml"
+            echo "Creating/updating AMQ ImageStream & Template"
+            openshift.replace("--force", "-f ", "${AMQ_IMAGE_STREAM}")
+            openshift.replace("--force", "-f ", "${AMQ_TEMPLATE}")
+          }
+        }
 			}
 		}
 
@@ -75,7 +79,7 @@ pipeline {
                          return it.count() > 0
                      }
               }
-              
+
 
 						}
 					}
