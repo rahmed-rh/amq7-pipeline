@@ -52,7 +52,7 @@ pipeline {
                 openshift.apply(amqSecretSelector) // Patch the object on the server
 
 							}
-              openshift.newBuild("registry.access.redhat.com/amq-broker-7/amq-broker-72-openshift:1.3","https://github.com/rahmed-rh/amq7.git")
+              openshift.newBuild("registry.access.redhat.com/amq-broker-7/amq-broker-72-openshift:1.3~https://github.com/rahmed-rh/amq7.git")
 						}
 					}
 				}
