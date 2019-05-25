@@ -54,8 +54,8 @@ pipeline {
 								def sa = ["kind": "ServiceAccount", "apiVersion": "v1", "metadata": ["labels": ["app": "${APP_NAME}"], "name": "broker-service-account"]]
 								roleObject = openshift.create(sa).object()
 							}
-							if (!openshift.selector('rolebinding.rbac', 'broker-role-binding').exists()) {
-								def roleBinding = ["apiVersion": "rbac.authorization.k8s.io/v1", "kind": "RoleBinding", "metadata": ["labels": ["app": "${APP_NAME}"], "name": "broker-role-binding", "namespace": "${env.NAMESPACE}"], "roleRef": ["apiGroup": "rbac.authorization.k8s.io", "kind": "ClusterRole", "name": "view"], "subjects": [["kind": "ServiceAccount", "name": "broker-service-account"]]]
+							if (!openshift.selector('rolebinding.rbac', 'broker-view-rolebinding').exists()) {
+								def roleBinding = ["apiVersion": "rbac.authorization.k8s.io/v1", "kind": "RoleBinding", "metadata": ["labels": ["app": "${APP_NAME}"], "name": "broker-view-rolebinding", "namespace": "${env.NAMESPACE}"], "roleRef": ["apiGroup": "rbac.authorization.k8s.io", "kind": "ClusterRole", "name": "view"], "subjects": [["kind": "ServiceAccount", "name": "broker-service-account"]]]
 								roleBindingObject = openshift.create(roleBinding).object()
 							}
 							if (!openshift.selector('secrets', 'amq-app-secret').exists()) {
@@ -79,7 +79,26 @@ pipeline {
                          return it.count() > 0
                      }
               }
+              if (!openshift.selector('sts', 'broker-amq').exists()) {
+                openshift.process(
+                      "amq-broker-72-persistence-clustered-ssl",
+                      "-p APPLICATION_NAME=broker","-p AMQ_QUEUES=demoQueue","-p AMQ_ADDRESSES=demoTopic","-p AMQ_USER=amq-demo-user", "-p AMQ_PASSWORD=passw0rd",
+                      "-p AMQ_ROLE=amq","-p AMQ_SECRET=amq-app-secret","-p AMQ_DATA_DIR=/opt/amq/data","-p AMQ_DATA_DIR_LOGGING=true",
+                      "-p IMAGE=docker-registry.default.svc:5000/amq7-s2i/amq7-custom","-p AMQ_PROTOCOL=openwire,amqp,stomp,mqtt,hornetq",
+                      "-p VOLUME_CAPACITY=1Gi","-p AMQ_TRUSTSTORE=amq-broker.jks","-p AMQ_KEYSTORE=amq-broker.jks",
+	                    "-p AMQ_TRUSTSTORE_PASSWORD=passw0rd","-p AMQ_KEYSTORE_PASSWORD=passw0rd","-p AMQ_CLUSTERED=true","-p AMQ_REPLICAS=3"
+                     )
+                def amqModels= openshift.selector('sts', 'broker-amq')
+                 timeout(10) {
+                        amqModels.watch {
 
+                            // Within the body, the variable 'it' is bound to the watched Selector (i.e. builds)
+                            echo "So far, ${amqModels.name()} has created build: ${it.names()}"
+                            // End the watch only once a build object has been created.
+                            return (amqModels.status.replicas.equals(amqModels.status.readyReplicas))
+                        }
+                 }
+                }
 
 						}
 					}
