@@ -71,7 +71,7 @@ pipeline {
                 customAMQ7BcSelector.delete()
               }
               def customAMQ7Build = openshift.newBuild("registry.access.redhat.com/amq-broker-7/amq-broker-72-openshift:1.3~https://github.com/rahmed-rh/amq7.git",'--name=amq7-custom',
-                                      '--labels=app="${params.APP_NAME}"').narrow("bc")
+                                      '--labels app="${params.APP_NAME}"').narrow("bc")
               timeout(2) {
                      customAMQ7Build.watch {
                          // Within the body, the variable 'it' is bound to the watched Selector (i.e. builds)
