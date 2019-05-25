@@ -47,12 +47,12 @@ pipeline {
 							if (!openshift.selector('secrets', 'amq-app-secret').exists()) {
                 // def amqSecretFile = readJSON file: "${workspace}@script/amq-app-secret.json"
 								def amqSecretFile = readFile("${workspace}@script/amq-app-secret.json")
-                def amqSecretWithLabel = openshift.create( amqSecretFile )
+                def amqSecretWithLabel = openshift.create( amqSecretFile ).object()
                 echo "${amqSecretWithLabel}"
-                echo "${amqSecretWithLabel.object()}"
+              
                 amqSecretWithLabel.metadata.labels['app']="${APP_NAME}"
 
-                openshift.apply(amqSecretWithLabel) // Patch the object on the server
+                //openshift.apply(amqSecretWithLabel) // Patch the object on the server
 
 							}
 						}
