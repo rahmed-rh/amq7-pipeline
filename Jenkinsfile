@@ -107,7 +107,7 @@ pipeline {
 							def podName = "${it.name()}"
 							echo "Pod: ${podName} will be deleted"
 							it.delete()
-              def currentPodsSelector = openshift.selector('po', "${podName}")
+              def currentPodsSelector = openshift.selector("${podName}")
               currentPodsSelector.watch {
 									echo "Waiting for Pod ${podName} to recreated"
 									return it.count() == 1
