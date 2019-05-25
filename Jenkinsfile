@@ -52,7 +52,10 @@ pipeline {
                 openshift.apply(amqSecretSelector) // Patch the object on the server
 
 							}
-              openshift.newBuild("registry.access.redhat.com/amq-broker-7/amq-broker-72-openshift:1.3~https://github.com/rahmed-rh/amq7.git",'--name=amq-custom','--labels="app": "${APP_NAME}"')
+              if (!openshift.selector('bc', 'amq7-custom').exists()) {
+                openshift.newBuild("registry.access.redhat.com/amq-broker-7/amq-broker-72-openshift:1.3~https://github.com/rahmed-rh/amq7.git",'--name=amq7-custom','--labels="app": "${APP_NAME}"')
+              }
+
 						}
 					}
 				}
