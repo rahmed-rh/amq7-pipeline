@@ -50,9 +50,9 @@ pipeline {
                 def amqSecretWithLabel = openshift.create( amqSecretFile )
                 echo "${amqSecretWithLabel}"
                 echo "${amqSecretWithLabel.object()}"
-                //amqSecretWithLabel.metadata.labels['app']="${APP_NAME}"
+                amqSecretWithLabel.metadata.labels['app']="${APP_NAME}"
 
-                //openshift.apply(amqSecretWithLabel) // Patch the object on the server
+                openshift.apply(amqSecretWithLabel) // Patch the object on the server
 
 							}
 						}
