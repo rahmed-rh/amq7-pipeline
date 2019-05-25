@@ -101,7 +101,7 @@ pipeline {
 				script {
 					openshift.withCluster() {
 						//openshift.verbose() // set logging level for subsequent operations executed (loglevel=8)
-						def podsSelector = openshift.selector('po', [app: "${params.APP_NAME}"])
+						def podsSelector = openshift.selector('po', [app: "${APP_NAME}-amq"])
             echo "${podsSelector}"
 						podsSelector.withEach {
 							def podName = "${it.name()}"
