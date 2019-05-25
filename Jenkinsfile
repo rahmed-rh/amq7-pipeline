@@ -47,13 +47,10 @@ pipeline {
 							if (!openshift.selector('secrets', 'amq-app-secret').exists()) {
                 // def amqSecret = readJSON file: "${workspace}@script/amq-app-secret.json"
 								def amqSecret = readFile("${workspace}@script/amq-app-secret.json")
-                echo "${amqSecret}"
+                def amqSecretWithLabel = openshift.create( amqSecret ).object()
+                amqSecretWithLabel.metadata.labels['app']="${APP_NAME}"
+                openshift.apply(amqSecretWithLabel) // Patch the object on the server
 
-                JsonBuilder builder = new JsonBuilder( amqSecret )
-
-                builder.content.metadata.labels[0].app = "${APP_NAME}"
-
-								
                   echo "After----------------------"
                 echo "${amqSecret}"
 								openshift.create(amqSecret)
