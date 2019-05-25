@@ -48,7 +48,7 @@ pipeline {
 			steps {
 				script {
 					openshift.withCluster() {
-						//openshift.verbose() // set logging level for subsequent operations executed (loglevel=8)
+						openshift.verbose() // set logging level for subsequent operations executed (loglevel=8)
 						openshift.withProject("${env.NAMESPACE}") {
 							if (!openshift.selector('sa', 'broker-service-account').exists()) {
 								def sa = ["kind": "ServiceAccount", "apiVersion": "v1", "metadata": ["labels": ["app": "${params.APP_NAME}"], "name": "broker-service-account"]]
