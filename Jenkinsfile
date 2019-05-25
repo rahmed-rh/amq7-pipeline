@@ -46,6 +46,7 @@ pipeline {
 							}
 							if (!openshift.selector('secrets', 'amq-app-secret').exists()) {
 								def amqSecret = readFile("amq-app-secret.json")
+                echo "${amqSecret}"
 								amqSecret.Object()
 								amqSecret.metadata.labels['app'] = "${APP_NAME}"
 								openshift.create(amqSecret)
