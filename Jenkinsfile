@@ -102,6 +102,7 @@ pipeline {
 					openshift.withCluster() {
 						//openshift.verbose() // set logging level for subsequent operations executed (loglevel=8)
 						def podsSelector = openshift.selector('po', [app: "${params.APP_NAME}"])
+            echo "${podsSelector}"
 						podsSelector.withEach {
 							def podName = "${it.name()}"
 							echo "Pod: ${podName} will be deleted"
