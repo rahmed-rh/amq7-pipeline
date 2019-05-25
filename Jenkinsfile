@@ -36,11 +36,24 @@ pipeline {
 					openshift.withCluster() {
 						//openshift.verbose() // set logging level for subsequent operations executed (loglevel=8)
 						openshift.withProject("${env.NAMESPACE}") {
+              dummy=openshift.selector('sa', 'broker-service-account')
+              echo "${dummy}"
+              echo "${dummy.exists()}"
 							if (!openshift.selector('sa', 'broker-service-account').exists()) {
 								def sa = ["kind": "ServiceAccount", "apiVersion": "v1", "metadata": ["labels": ["app": "${APP_NAME}"], "name": "broker-service-account"]]
 								roleObject = openshift.create(role).object()
 							}
-							
+							if (!openshift.selector('rolebinding.rbac', 'broker-role-binding').exists()) {
+								def roleBinding = ["apiVersion": "rbac.authorization.k8s.io/v1", "kind": "RoleBinding", "metadata": ["labels": ["app": "${APP_NAME}"], "name": "broker-role-binding", "namespace": "${env.NAMESPACE}"], "roleRef": ["apiGroup": "rbac.authorization.k8s.io", "kind": "ClusterRole", "name": "view"], "subjects": [["kind": "ServiceAccount", "name": "broker-service-account"]]]
+								roleBindingObject = openshift.create(roleBinding).object()
+							}
+							if (!openshift.selector('secrets', 'amq-app-secret').exists()) {
+								def amqSecret = readFile("amq-app-secret.json")
+                echo "${amqSecret}"
+								amqSecret.Object()
+								amqSecret.metadata.labels['app'] = "${APP_NAME}"
+								openshift.create(amqSecret)
+							}
 						}
 					}
 				}
