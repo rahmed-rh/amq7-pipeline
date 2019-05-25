@@ -51,18 +51,18 @@ pipeline {
 						//openshift.verbose() // set logging level for subsequent operations executed (loglevel=8)
 						openshift.withProject("${env.NAMESPACE}") {
 							if (!openshift.selector('sa', 'broker-service-account').exists()) {
-								def sa = ["kind": "ServiceAccount", "apiVersion": "v1", "metadata": ["labels": ["app": "${params.APP_NAME}"], "name": "broker-service-account"]]
+								def sa = ["kind": "ServiceAccount", "apiVersion": "v1", "metadata": ["labels": ["application": "${params.APP_NAME}"], "name": "broker-service-account"]]
 								roleObject = openshift.create(sa).object()
 							}
 							if (!openshift.selector('rolebinding.rbac', 'broker-view-rolebinding').exists()) {
-								def roleBinding = ["apiVersion": "rbac.authorization.k8s.io/v1", "kind": "RoleBinding", "metadata": ["labels": ["app": "${params.APP_NAME}"], "name": "broker-view-rolebinding", "namespace": "${env.NAMESPACE}"], "roleRef": ["apiGroup": "rbac.authorization.k8s.io", "kind": "ClusterRole", "name": "view"], "subjects": [["kind": "ServiceAccount", "name": "broker-service-account"]]]
+								def roleBinding = ["apiVersion": "rbac.authorization.k8s.io/v1", "kind": "RoleBinding", "metadata": ["labels": ["application": "${params.APP_NAME}"], "name": "broker-view-rolebinding", "namespace": "${env.NAMESPACE}"], "roleRef": ["apiGroup": "rbac.authorization.k8s.io", "kind": "ClusterRole", "name": "view"], "subjects": [["kind": "ServiceAccount", "name": "broker-service-account"]]]
 								roleBindingObject = openshift.create(roleBinding).object()
 							}
 							if (!openshift.selector('secrets', 'amq-app-secret').exists()) {
                 // def amqSecretFile = readJSON file: "${workspace}@script/amq-app-secret.json"
 								def amqSecretFile = readFile("${workspace}@script/amq-app-secret.json")
                 def amqSecretSelector = openshift.create( amqSecretFile ).object()
-                amqSecretSelector.metadata.put('labels', ["app": "${params.APP_NAME}"])
+                amqSecretSelector.metadata.put('labels', ["application": "${params.APP_NAME}"])
                 openshift.apply(amqSecretSelector) // Patch the object on the server
 
 							}
@@ -87,9 +87,10 @@ pipeline {
                                           "-p IMAGE=docker-registry.default.svc:5000/${env.NAMESPACE}/amq7-custom","-p AMQ_PROTOCOL=openwire,amqp,stomp,mqtt,hornetq",
                                           "-p VOLUME_CAPACITY=1Gi","-p AMQ_TRUSTSTORE=amq-broker.jks","-p AMQ_KEYSTORE=amq-broker.jks",
                     	                    "-p AMQ_TRUSTSTORE_PASSWORD=passw0rd","-p AMQ_KEYSTORE_PASSWORD=passw0rd","-p AMQ_CLUSTERED=true","-p AMQ_REPLICAS=3"
-                                         ).narrow('sts')
+                                         )
+                    echo "${amqSts}"
 
-                     timeout(10) {
+                     /*timeout(10) {
                             amqSts.watch {
 
                                 // Within the body, the variable 'it' is bound to the watched Selector (i.e. builds)
@@ -97,7 +98,7 @@ pipeline {
                                 // End the watch only once a build object has been created.
                                 return (amqSts.status.replicas.equals(amqSts.status.readyReplicas))
                             }
-                     }
+                     }*/
                 }
 
 						}
