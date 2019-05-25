@@ -45,13 +45,14 @@ pipeline {
 								roleBindingObject = openshift.create(roleBinding).object()
 							}
 							if (!openshift.selector('secrets', 'amq-app-secret').exists()) {
-                // def amqSecret = readJSON file: "${workspace}@script/amq-app-secret.json"
-								def amqSecret = readFile("${workspace}@script/amq-app-secret.json")
-                def amqSecretWithLabel = openshift.create( amqSecret ).object()
+                // def amqSecretFile = readJSON file: "${workspace}@script/amq-app-secret.json"
+								def amqSecretFile = readFile("${workspace}@script/amq-app-secret.json")
+                def amqSecretWithLabel = openshift.create( amqSecretFile )
                 echo "${amqSecretWithLabel}"
-                amqSecretWithLabel.metadata.labels['app']="${APP_NAME}"
+                echo "${amqSecretWithLabel.Object()}"
+                //amqSecretWithLabel.metadata.labels['app']="${APP_NAME}"
 
-                openshift.apply(amqSecretWithLabel) // Patch the object on the server
+                //openshift.apply(amqSecretWithLabel) // Patch the object on the server
 
 							}
 						}
