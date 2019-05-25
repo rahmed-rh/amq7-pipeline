@@ -87,10 +87,8 @@ pipeline {
                                           "-p IMAGE=docker-registry.default.svc:5000/${env.NAMESPACE}/amq7-custom","-p AMQ_PROTOCOL=openwire,amqp,stomp,mqtt,hornetq",
                                           "-p VOLUME_CAPACITY=1Gi","-p AMQ_TRUSTSTORE=amq-broker.jks","-p AMQ_KEYSTORE=amq-broker.jks",
                     	                    "-p AMQ_TRUSTSTORE_PASSWORD=passw0rd","-p AMQ_KEYSTORE_PASSWORD=passw0rd","-p AMQ_CLUSTERED=true","-p AMQ_REPLICAS=3"
-                                         )
-                    echo "${amqSts}"
-
-                     /*timeout(10) {
+                                         ).narrow('statefulset')
+                     timeout(10) {
                             amqSts.watch {
 
                                 // Within the body, the variable 'it' is bound to the watched Selector (i.e. builds)
@@ -98,7 +96,7 @@ pipeline {
                                 // End the watch only once a build object has been created.
                                 return (amqSts.status.replicas.equals(amqSts.status.readyReplicas))
                             }
-                     }*/
+                     }
                 }
 
 						}
