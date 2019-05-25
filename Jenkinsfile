@@ -45,7 +45,7 @@ pipeline {
 								roleBindingObject = openshift.create(roleBinding).object()
 							}
 							if (!openshift.selector('secrets', 'amq-app-secret').exists()) {
-                def amqSecret = readJSON file: '${workspace}@script/amq-app-secret.json'
+                def amqSecret = readJSON file: "${workspace}@script/amq-app-secret.json"
 								//def amqSecret = readFile("${workspace}@script/amq-app-secret.json")
                 echo "${amqSecret}"
 								amqSecret.Object()
