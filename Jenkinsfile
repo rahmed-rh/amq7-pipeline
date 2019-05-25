@@ -70,8 +70,7 @@ pipeline {
               if (customAMQ7BcSelector.exists()) {
                 customAMQ7BcSelector.delete()
               }
-              def customAMQ7Build = openshift.newBuild("registry.access.redhat.com/amq-broker-7/amq-broker-72-openshift:1.3~https://github.com/rahmed-rh/amq7.git",'--name=amq7-custom',
-                                      '--labels app="${params.APP_NAME}"').narrow("bc")
+              def customAMQ7Build = openshift.newBuild("registry.access.redhat.com/amq-broker-7/amq-broker-72-openshift:1.3~https://github.com/rahmed-rh/amq7.git",'--name=amq7-custom').narrow("bc")
               timeout(2) {
                      customAMQ7Build.watch {
                          // Within the body, the variable 'it' is bound to the watched Selector (i.e. builds)
@@ -83,7 +82,7 @@ pipeline {
               if (!openshift.selector('sts', 'broker-amq').exists()) {
                   def amqSts= openshift.newApp(
                                           "amq-broker-72-persistence-clustered-ssl",
-                                          "-p APPLICATION_NAME=broker","-p AMQ_QUEUES=demoQueue","-p AMQ_ADDRESSES=demoTopic","-p AMQ_USER=amq-demo-user", "-p AMQ_PASSWORD=passw0rd",
+                                          "-p APPLICATION_NAME=${params.APP_NAME}","-p AMQ_QUEUES=demoQueue","-p AMQ_ADDRESSES=demoTopic","-p AMQ_USER=amq-demo-user", "-p AMQ_PASSWORD=passw0rd",
                                           "-p AMQ_ROLE=amq","-p AMQ_SECRET=amq-app-secret","-p AMQ_DATA_DIR=/opt/amq/data","-p AMQ_DATA_DIR_LOGGING=true",
                                           "-p IMAGE=docker-registry.default.svc:5000/amq7-s2i/amq7-custom","-p AMQ_PROTOCOL=openwire,amqp,stomp,mqtt,hornetq",
                                           "-p VOLUME_CAPACITY=1Gi","-p AMQ_TRUSTSTORE=amq-broker.jks","-p AMQ_KEYSTORE=amq-broker.jks",
