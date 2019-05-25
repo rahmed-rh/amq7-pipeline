@@ -48,7 +48,7 @@ pipeline {
 			steps {
 				script {
 					openshift.withCluster() {
-						openshift.verbose() // set logging level for subsequent operations executed (loglevel=8)
+						//openshift.verbose() // set logging level for subsequent operations executed (loglevel=8)
 						openshift.withProject("${env.NAMESPACE}") {
 							if (!openshift.selector('sa', 'broker-service-account').exists()) {
 								def sa = ["kind": "ServiceAccount", "apiVersion": "v1", "metadata": ["labels": ["app": "${params.APP_NAME}"], "name": "broker-service-account"]]
@@ -84,7 +84,7 @@ pipeline {
                                           "amq-broker-72-persistence-clustered-ssl",
                                           "-p APPLICATION_NAME=${params.APP_NAME}","-p AMQ_QUEUES=demoQueue","-p AMQ_ADDRESSES=demoTopic","-p AMQ_USER=amq-demo-user", "-p AMQ_PASSWORD=passw0rd",
                                           "-p AMQ_ROLE=amq","-p AMQ_SECRET=amq-app-secret","-p AMQ_DATA_DIR=/opt/amq/data","-p AMQ_DATA_DIR_LOGGING=true",
-                                          "-p IMAGE=docker-registry.default.svc:5000/amq7-s2i/amq7-custom","-p AMQ_PROTOCOL=openwire,amqp,stomp,mqtt,hornetq",
+                                          "-p IMAGE=docker-registry.default.svc:5000/${env.NAMESPACE}/amq7-custom","-p AMQ_PROTOCOL=openwire,amqp,stomp,mqtt,hornetq",
                                           "-p VOLUME_CAPACITY=1Gi","-p AMQ_TRUSTSTORE=amq-broker.jks","-p AMQ_KEYSTORE=amq-broker.jks",
                     	                    "-p AMQ_TRUSTSTORE_PASSWORD=passw0rd","-p AMQ_KEYSTORE_PASSWORD=passw0rd","-p AMQ_CLUSTERED=true","-p AMQ_REPLICAS=3"
                                          ).narrow('sts')
