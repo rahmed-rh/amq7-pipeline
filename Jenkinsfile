@@ -100,7 +100,7 @@ pipeline {
                                 // End the watch only once a build object has been created.
                                 return (amqSts.status.replicas==amqSts.status.currentReplicas)
                             }
-                     }/*
+                     }*/
                 }
 
 						}
