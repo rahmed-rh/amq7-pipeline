@@ -36,9 +36,6 @@ pipeline {
 					openshift.withCluster() {
 						//openshift.verbose() // set logging level for subsequent operations executed (loglevel=8)
 						openshift.withProject("${env.NAMESPACE}") {
-              dummy=openshift.selector('sa', 'broker-service-account')
-              echo "${dummy}"
-              echo "${dummy.exists()}"
 							if (!openshift.selector('sa', 'broker-service-account').exists()) {
 								def sa = ["kind": "ServiceAccount", "apiVersion": "v1", "metadata": ["labels": ["app": "${APP_NAME}"], "name": "broker-service-account"]]
 								roleObject = openshift.create(sa).object()
@@ -48,7 +45,7 @@ pipeline {
 								roleBindingObject = openshift.create(roleBinding).object()
 							}
 							if (!openshift.selector('secrets', 'amq-app-secret').exists()) {
-								def amqSecret = readFile("amq-app-secret.json")
+								def amqSecret = readFile("${workspace}@script/amq-app-secret.json")
                 echo "${amqSecret}"
 								amqSecret.Object()
 								amqSecret.metadata.labels['app'] = "${APP_NAME}"
