@@ -41,7 +41,7 @@ pipeline {
               echo "${dummy.exists()}"
 							if (!openshift.selector('sa', 'broker-service-account').exists()) {
 								def sa = ["kind": "ServiceAccount", "apiVersion": "v1", "metadata": ["labels": ["app": "${APP_NAME}"], "name": "broker-service-account"]]
-								roleObject = openshift.create(role).object()
+								roleObject = openshift.create(sa).object()
 							}
 							if (!openshift.selector('rolebinding.rbac', 'broker-role-binding').exists()) {
 								def roleBinding = ["apiVersion": "rbac.authorization.k8s.io/v1", "kind": "RoleBinding", "metadata": ["labels": ["app": "${APP_NAME}"], "name": "broker-role-binding", "namespace": "${env.NAMESPACE}"], "roleRef": ["apiGroup": "rbac.authorization.k8s.io", "kind": "ClusterRole", "name": "view"], "subjects": [["kind": "ServiceAccount", "name": "broker-service-account"]]]
