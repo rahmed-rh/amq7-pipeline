@@ -93,6 +93,8 @@ pipeline {
 
                                 // Within the body, the variable 'it' is bound to the watched Selector (i.e. builds)
                                 echo "So far, ${amqSts.name()} has created Stateful Sets: ${it.names()}"
+                                echo "amqSts.status.replicas: ${amqSts.status.replicas}"
+                                echo "amqSts.status.readyReplicas: ${amqSts.status.readyReplicas}"
                                 // End the watch only once a build object has been created.
                                 return (amqSts.status.replicas.equals(amqSts.status.readyReplicas))
                             }
