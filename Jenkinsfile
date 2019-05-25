@@ -30,6 +30,16 @@ pipeline {
 			}
 		}
 
+    stage('Create ImageStreams & Template') {
+			steps {
+        def AMQ_IMAGE_STREAM = "https://raw.githubusercontent.com/jboss-container-images/jboss-amq-7-broker-openshift-image/72-1.3.GA/amq-broker-7-image-streams.yaml"
+        def AMQ_TEMPLATE = "https://raw.githubusercontent.com/jboss-container-images/jboss-amq-7-broker-openshift-image/72-1.3.GA/templates/amq-broker-72-persistence-clustered-ssl.yaml"
+        echo "Creating/updating AMQ ImageStream & Template"
+        openshift.replace("--force", "-f ", "${AMQ_IMAGE_STREAM}")
+        openshift.replace("--force", "-f ", "${AMQ_TEMPLATE}")
+			}
+		}
+
 		stage('Create Needed API Objects') {
 			steps {
 				script {
@@ -61,16 +71,30 @@ pipeline {
                      customAMQ7Build.watch {
                          // Within the body, the variable 'it' is bound to the watched Selector (i.e. builds)
                          echo "So far, ${customAMQ7Build.name()} has created build: ${it.names()}"
-
                          // End the watch only once a build object has been created.
                          return it.count() > 0
                      }
-                }
+              }
+              
 
 						}
 					}
 				}
 			}
 		}
+
+
+    stage('Recreate PODs to take latest image') {
+			steps {
+				script {
+					openshift.withCluster() {
+						//openshift.verbose() // set logging level for subsequent operations executed (loglevel=8)
+
+					}
+				}
+			}
+		}
+
+
 	}
 }
