@@ -48,7 +48,7 @@ pipeline {
                 def amqSecret = readJSON file: "${workspace}@script/amq-app-secret.json"
 								//def amqSecret = readFile("${workspace}@script/amq-app-secret.json")
                 echo "${amqSecret}"
-								amqSecret.metadata.labels['app'] = "${APP_NAME
+								amqSecret.metadata.labels['app'] = "${APP_NAME}"
                   echo "After----------------------"
                 echo "${amqSecret}"
 								openshift.create(amqSecret)
