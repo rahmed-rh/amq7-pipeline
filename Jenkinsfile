@@ -35,7 +35,7 @@ pipeline {
   steps {
    script {
     openshift.withCluster() {
-      // openshift.verbose() // set logging level for subsequent operations executed (loglevel=8)
+     openshift.verbose() // set logging level for subsequent operations executed (loglevel=8)
      openshift.withProject("${env.NAMESPACE}") {
        if (!openshift.selector( 'sa', 'broker-service-account' ).exists())
        {
@@ -79,10 +79,10 @@ pipeline {
         }
         if (!openshift.selector( 'secrets', 'amq-app-secret' ).exists())
         {
-          def amq-secret = readFile("amq-app-secret.yaml")
-          amq-secret.Object()
-          amq-secret.metadata.labels['app']="${APP_NAME}"
-          openshift.create(amq-secret)
+          def amqSecret = readFile("amq-app-secret.yaml")
+          amqSecret.Object()
+          amqSecret.metadata.labels['app']="${APP_NAME}"
+          openshift.create(amqSecret)
         }
      }
     }
