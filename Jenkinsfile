@@ -111,7 +111,7 @@ pipeline {
               currentPodsSelector.watch {
 									echo "Waiting for Pod ${podName} to recreated"
                   echo "${it.object().status.containerStatuses[0].ready}"
-									return it.object().status.containerStatuses[0].ready == "true"
+									return it.object().status.containerStatuses[0].ready == true
 								}
 						}
 					}
