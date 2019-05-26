@@ -73,10 +73,14 @@ pipeline {
         openshift.apply(amqSecretSelector) // Patch the object on the server
        }
        def customAMQ7BcSelector = openshift.selector('bc', 'amq7-custom')
-       if (customAMQ7BcSelector.exists()) {
-        customAMQ7BcSelector.delete()
+       def customAMQ7Build
+       if (!customAMQ7BcSelector.exists()) {
+        customAMQ7Build = openshift.newBuild("registry.access.redhat.com/amq-broker-7/amq-broker-72-openshift:1.3~https://github.com/rahmed-rh/amq7.git", '--name=amq7-custom').narrow("bc").related('builds')
        }
-       def customAMQ7Build = openshift.newBuild("registry.access.redhat.com/amq-broker-7/amq-broker-72-openshift:1.3~https://github.com/rahmed-rh/amq7.git", '--name=amq7-custom').narrow("bc").related('builds')
+       else{
+        customAMQ7Build = customAMQ7BcSelector.startBuild()
+       }
+       
        timeout(5) {
         customAMQ7Build.watch {
          // Within the body, the variable 'it' is bound to the watched Selector (i.e. builds)
