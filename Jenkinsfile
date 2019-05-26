@@ -75,7 +75,7 @@ pipeline {
 							timeout(5) {
 								customAMQ7Build.watch {
 									// Within the body, the variable 'it' is bound to the watched Selector (i.e. builds)
-									echo "waiting for build:${customAMQ7Build.name()} to complete"
+									echo "waiting for ${customAMQ7Build.name()} to complete"
 
                   def allDone = true
                   it.withEach {
@@ -110,7 +110,7 @@ pipeline {
 						amqSts = amqSts.narrow('statefulset')
 						timeout(15) {
 							amqSts.watch {
-								echo "Waiting for statefulset ${it.name()} to be ready"
+								echo "Waiting for ${it.name()} to be ready"
 								return it.object().status.readyReplicas == no_of_replicas
 							}
 						}
