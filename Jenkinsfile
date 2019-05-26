@@ -1,5 +1,6 @@
 openshift.withCluster() {
 	env.NAMESPACE = openshift.project()
+  env.NEW_APP_CREATED = false;
 	//env.TOKEN = readFile('/var/run/secrets/kubernetes.io/serviceaccount/token').trim()
 }
 
@@ -81,6 +82,7 @@ pipeline {
 							}
               def no_of_replicas = Integer.parseInt("${params.NO_OF_REPLICAS}")
 							if (!openshift.selector('sts', "${APP_NAME}-amq").exists()) {
+                env.NEW_APP_CREATED = true;
 								def amqSts = openshift.newApp("amq-broker-72-persistence-clustered-ssl", "-p APPLICATION_NAME=${params.APP_NAME}", "-p AMQ_QUEUES=demoQueue", "-p AMQ_ADDRESSES=demoTopic", "-p AMQ_USER=amq-demo-user", "-p AMQ_PASSWORD=passw0rd", "-p AMQ_ROLE=amq", "-p AMQ_SECRET=amq-app-secret", "-p AMQ_DATA_DIR=/opt/amq/data", "-p AMQ_DATA_DIR_LOGGING=true", "-p IMAGE=docker-registry.default.svc:5000/${env.NAMESPACE}/amq7-custom", "-p AMQ_PROTOCOL=openwire,amqp,stomp,mqtt,hornetq", "-p VOLUME_CAPACITY=200Mi", "-p AMQ_TRUSTSTORE=amq-broker.jks", "-p AMQ_KEYSTORE=amq-broker.jks", "-p AMQ_TRUSTSTORE_PASSWORD=passw0rd", "-p AMQ_KEYSTORE_PASSWORD=passw0rd", "-p AMQ_CLUSTERED=true", "-p AMQ_REPLICAS=${no_of_replicas}")
                 echo "${amqSts}"
                 amqSts = amqSts.narrow('statefulset')
@@ -101,6 +103,9 @@ pipeline {
 		}
 
 		stage('Recreate PODs to take latest image') {
+      when {
+          environment name: 'NEW_APP_CREATED', value: 'true'
+      }
 			steps {
 				script {
 					openshift.withCluster() {
