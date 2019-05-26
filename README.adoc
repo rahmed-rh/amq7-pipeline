@@ -1,0 +1,194 @@
+= Configure AMQ 7 Pipeline for Deploying AMQ 7 S2I
+:toc:
+
+.Note about AMQ 7 Pipeline
+****
+The S2I is using AMQ persistent and SSL template, the pipeline having multiple pahses 
+
+. Create the required templates and imagestreams
+. Create the needed API Objects like service account, secrets and rolebinding
+. If this is the first time to run 
+.. Process the AMQ S2I template and create the needed AMQ application
+.. Else: Only delete one by one pod and wait it to be recreated based on the new image 
+
+For more information, please refer to https://access.redhat.com/documentation/en-us/red_hat_amq/7.2/html-single/deploying_amq_broker_on_openshift_container_platform[amq documentation]
+
+****
+
+[TIP]
+====
+AMQ 7 Broker is deployed as https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/[StatefulSets]
+
+* `*Update Strategies*`
+** `*On Delete*`
+The OnDelete update strategy implements the legacy (1.6 and prior) behavior. When a StatefulSet?s .spec.updateStrategy.type is set to OnDelete, the StatefulSet controller will not automatically update the Pods in a StatefulSet. Users must manually delete Pods to cause the controller to create new Pods that reflect modifications made to a StatefulSet?s .spec.template.
+
+** `*Rolling Updates*`
+The RollingUpdate update strategy implements automated, rolling update for the Pods in a StatefulSet. It is the default strategy when .spec.updateStrategy is left unspecified. When a StatefulSet?s .spec.updateStrategy.type is set to RollingUpdate, the StatefulSet controller will delete and recreate each Pod in the StatefulSet. It will proceed in the same order as Pod termination (from the largest ordinal to the smallest), updating each Pod one at a time. It will wait until an updated Pod is Running and Ready prior to updating its predecessor.
+
+====
+
+[source,yaml]
+----
+....
+spec:
+  podManagementPolicy: OrderedReady
+  replicas: 3
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: amq-broker-amq
+  serviceName: broker-amq-headless
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: amq-broker-amq
+        application: amq-broker
+        deploymentConfig: amq-broker-amq
+      name: amq-broker-amq
+    spec:
+      containers:
+        - env:
+            - name: AMQ_USER
+              value: amq-demo-user
+            - name: AMQ_PASSWORD
+              value: passw0rd
+            - name: AMQ_ROLE
+              value: amq
+            - name: AMQ_NAME
+              value: broker
+            - name: AMQ_TRANSPORTS
+              value: 'openwire,amqp,stomp,mqtt,hornetq'
+            - name: AMQ_QUEUES
+              value: demoQueue
+            - name: AMQ_ADDRESSES
+              value: demoTopic
+            - name: AMQ_KEYSTORE_TRUSTSTORE_DIR
+              value: /etc/amq-secret-volume
+            - name: AMQ_TRUSTSTORE
+              value: amq-broker.jks
+            - name: AMQ_TRUSTSTORE_PASSWORD
+              value: passw0rd
+            - name: AMQ_KEYSTORE
+              value: amq-broker.jks
+            - name: AMQ_KEYSTORE_PASSWORD
+              value: passw0rd
+            - name: AMQ_GLOBAL_MAX_SIZE
+              value: 100 gb
+            - name: AMQ_REQUIRE_LOGIN
+            - name: AMQ_DATA_DIR
+              value: /opt/amq/data
+            - name: AMQ_DATA_DIR_LOGGING
+              value: 'true'
+            - name: AMQ_CLUSTERED
+              value: 'true'
+            - name: AMQ_REPLICAS
+              value: '3'
+            - name: AMQ_CLUSTER_USER
+              value: userYeS
+            - name: AMQ_CLUSTER_PASSWORD
+              value: OrCbY3f4
+            - name: AMQ_EXTRA_ARGS
+            - name: AMQ_ANYCAST_PREFIX
+            - name: AMQ_MULTICAST_PREFIX
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+          image: >-
+            docker-registry.default.svc:5000/amq7-s2i/amq7-custom@sha256:40602fbdb7be741bd9f9c871070c11b91bdcdd892a8c28f246904bb715379a60
+          imagePullPolicy: IfNotPresent
+          name: amq-broker-amq
+          ports:
+            - containerPort: 8161
+              name: console-jolokia
+              protocol: TCP
+            - containerPort: 5672
+              name: amqp
+              protocol: TCP
+            - containerPort: 5671
+              name: amqp-ssl
+              protocol: TCP
+            - containerPort: 1883
+              name: mqtt
+              protocol: TCP
+            - containerPort: 8883
+              name: mqtt-ssl
+              protocol: TCP
+            - containerPort: 61613
+              name: stomp
+              protocol: TCP
+            - containerPort: 61612
+              name: stomp-ssl
+              protocol: TCP
+            - containerPort: 61616
+              name: all
+              protocol: TCP
+            - containerPort: 61617
+              name: all-ssl
+              protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - '-c'
+                - /opt/amq/bin/readinessProbe.sh
+            failureThreshold: 3
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: /opt/amq/data
+              name: amq-broker-amq-pvol
+            - mountPath: /etc/amq-secret-volume
+              name: broker-secret-volume
+              readOnly: true
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 60
+      volumes:
+        - name: broker-secret-volume
+          secret:
+            defaultMode: 420
+            secretName: amq-app-secret
+  updateStrategy:
+    type: OnDelete # <1>
+....
+----
+<1> For AMQ7 Statefulset the updateStrategy is OnDelete
+
+==  Create the project
+[source,shell]
+----
+oc new-project amq7-s2i
+----
+
+==  Add the pipeline buildconfig
+[source,shell]
+----
+oc create -f build-pipeline.yaml
+----
+
+==  Ensure the jenkins serviceaccount have the right privileges
+[source,shell]
+----
+oc policy add-role-to-user admin -z jenkins
+----
+
+==  For reverting the created Objects
+[source,shell]
+----
+oc delete rolebinding amq-broker-role-binding
+oc delete role amq-broker-role
+oc delete serviceaccounts amq-broker-service-account
+oc delete all -l application=amq-broker
+----
+
+
