@@ -1,4 +1,6 @@
 = Configure AMQ 7 Pipeline for Deploying AMQ 7 S2I
+
+
 :toc:
 
 .Note about AMQ 7 Pipeline
@@ -7,9 +9,10 @@ The S2I is using AMQ persistent and SSL template, the pipeline having multiple p
 
 . Create the required templates and imagestreams
 . Create the needed API Objects like service account, secrets and rolebinding
+. Build the new image based on S2I (AMQ S2I is explained in another repo).
 . If this is the first time to run 
 .. Process the AMQ S2I template and create the needed AMQ application
-.. Else: Only delete one by one pod and wait it to be recreated based on the new image 
+.. Else: Only delete pods one by one, and wait for each one to be recreated based on the new image, before proceeding with next one.
 
 For more information, please refer to https://access.redhat.com/documentation/en-us/red_hat_amq/7.2/html-single/deploying_amq_broker_on_openshift_container_platform[amq documentation]
 
@@ -19,6 +22,8 @@ For more information, please refer to https://access.redhat.com/documentation/en
 ====
 AMQ 7 Broker is deployed as https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/[StatefulSets]
 
+From Documentation, an important note is the update strategy
+
 * `*Update Strategies*`
 ** `*On Delete*`
 The OnDelete update strategy implements the legacy (1.6 and prior) behavior. When a StatefulSet?s .spec.updateStrategy.type is set to OnDelete, the StatefulSet controller will not automatically update the Pods in a StatefulSet. Users must manually delete Pods to cause the controller to create new Pods that reflect modifications made to a StatefulSet?s .spec.template.
@@ -27,7 +32,7 @@ The OnDelete update strategy implements the legacy (1.6 and prior) behavior. Whe
 The RollingUpdate update strategy implements automated, rolling update for the Pods in a StatefulSet. It is the default strategy when .spec.updateStrategy is left unspecified. When a StatefulSet?s .spec.updateStrategy.type is set to RollingUpdate, the StatefulSet controller will delete and recreate each Pod in the StatefulSet. It will proceed in the same order as Pod termination (from the largest ordinal to the smallest), updating each Pod one at a time. It will wait until an updated Pod is Running and Ready prior to updating its predecessor.
 
 ====
-
+looking at the amq-broker statefulset, we can identify the updateStrategy
 [source,yaml]
 ----
 ....
@@ -162,7 +167,10 @@ spec:
     type: OnDelete # <1>
 ....
 ----
-<1> For AMQ7 Statefulset the updateStrategy is OnDelete
+<1> For AMQ7 Statefulset the updateStrategy is OnDelete.
+
+This is an important consideration in the design of the pipeline.
+The pipeline will delete one-pod at a time, wait for it to spin up again based on the new definition, before moving to next one.
 
 ==  Create the project
 [source,shell]
