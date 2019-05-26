@@ -88,9 +88,7 @@ pipeline {
                 amqSts = amqSts.narrow('statefulset')
 								timeout(10) {
 									amqSts.watch {
-
-										// Within the body, the variable 'it' is bound to the watched Selector (i.e. builds)
-										echo "So far, ${amqSts.name()} has created Stateful Sets: ${it.names()}"
+                    echo "Waiting for statefulset ${it.name()} to be ready"
 										return it.object().status.readyReplicas == no_of_replicas
 									}
 								}
