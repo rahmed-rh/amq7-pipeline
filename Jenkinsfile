@@ -76,23 +76,16 @@ pipeline {
 								customAMQ7Build.watch {
 									// Within the body, the variable 'it' is bound to the watched Selector (i.e. builds)
 									echo "So far, ${customAMQ7Build.name()} has created build: ${it.names()}"
-									// End the watch only once a build object has been created.
-									return it.count() > 0
+
+                  def allDone = true
+                  it.withEach {
+                      if ( it.object().status.phase != "Complete" ) {
+                          allDone = false
+                      }
+                  }
+                  return allDone;
 								}
-                // But we can actually want to wait for the build to complete.
-                customAMQ7Build.watch {
-                    if ( it.count() == 0 ) return false
-
-                    def allDone = true
-                    it.withEach {
-                        if ( it.object().status.phase != "Complete" ) {
-                            allDone = false
-                        }
-                    }
-
-                    return allDone;
-                }
-                 openshift.tag("${env.NAMESPACE}/amq7-custom", "${env.NAMESPACE}/amq7-custom:1.${env.BUILD_NUMBER}")
+                openshift.tag("${env.NAMESPACE}/amq7-custom", "${env.NAMESPACE}/amq7-custom:1.${env.BUILD_NUMBER}")
 							}
 							if (!openshift.selector('sts', "${APP_NAME}-amq").exists()) {
 								env.APP_ALREADY_EXISTS = false;
