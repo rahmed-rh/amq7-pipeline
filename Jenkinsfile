@@ -85,7 +85,7 @@ pipeline {
                   }
                   return allDone;
 								}
-                openshift.tag("${env.NAMESPACE}/amq7-custom", "${env.NAMESPACE}/amq7-custom:1.${env.BUILD_NUMBER}")
+                openshift.tag("${env.NAMESPACE}/amq7-custom:latest", "${env.NAMESPACE}/amq7-custom:1.${env.BUILD_NUMBER}")
 							}
 							if (!openshift.selector('sts', "${APP_NAME}-amq").exists()) {
 								env.APP_ALREADY_EXISTS = false;
