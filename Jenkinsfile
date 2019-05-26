@@ -104,7 +104,7 @@ pipeline {
 
 		stage('Recreate PODs to take latest image') {
       when {
-          environment name: 'NEW_APP_CREATED', value: 'true'
+          environment name: 'NEW_APP_CREATED', value: 'false'
       }
 			steps {
 				script {
