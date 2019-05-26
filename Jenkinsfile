@@ -72,10 +72,10 @@ pipeline {
 								customAMQ7BcSelector.delete()
 							}
 							def customAMQ7Build = openshift.newBuild("registry.access.redhat.com/amq-broker-7/amq-broker-72-openshift:1.3~https://github.com/rahmed-rh/amq7.git", '--name=amq7-custom').narrow("bc").related('builds')
-							timeout(2) {
+							timeout(5) {
 								customAMQ7Build.watch {
 									// Within the body, the variable 'it' is bound to the watched Selector (i.e. builds)
-									echo "So far, ${customAMQ7Build.name()} has created build: ${it.names()}"
+									echo "waiting for build:${customAMQ7Build.name()} to complete"
 
                   def allDone = true
                   it.withEach {
@@ -108,7 +108,7 @@ pipeline {
 						def amqSts = openshift.newApp("amq-broker-72-persistence-clustered-ssl", "-p APPLICATION_NAME=${params.APP_NAME}", "-p AMQ_QUEUES=demoQueue", "-p AMQ_ADDRESSES=demoTopic", "-p AMQ_USER=amq-demo-user", "-p AMQ_PASSWORD=passw0rd", "-p AMQ_ROLE=amq", "-p AMQ_SECRET=amq-app-secret", "-p AMQ_DATA_DIR=/opt/amq/data", "-p AMQ_DATA_DIR_LOGGING=true", "-p IMAGE=${env.NAMESPACE}/amq7-custom:1.${env.BUILD_NUMBER}", "-p AMQ_PROTOCOL=openwire,amqp,stomp,mqtt,hornetq", "-p VOLUME_CAPACITY=200Mi", "-p AMQ_TRUSTSTORE=amq-broker.jks", "-p AMQ_KEYSTORE=amq-broker.jks", "-p AMQ_TRUSTSTORE_PASSWORD=passw0rd", "-p AMQ_KEYSTORE_PASSWORD=passw0rd", "-p AMQ_CLUSTERED=true", "-p AMQ_REPLICAS=${no_of_replicas}")
 						echo "${amqSts}"
 						amqSts = amqSts.narrow('statefulset')
-						timeout(10) {
+						timeout(15) {
 							amqSts.watch {
 								echo "Waiting for statefulset ${it.name()} to be ready"
 								return it.object().status.readyReplicas == no_of_replicas
