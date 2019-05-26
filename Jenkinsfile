@@ -18,6 +18,7 @@ pipeline {
 	agent any
 	parameters {
 		string(name: 'APP_NAME', defaultValue: 'amq-broker', description: "Application Name - all resources use this name as a label use lowercase")
+    string(name: 'NO_OF_REPLICAS', defaultValue: '3', description: "AMQ Cluster Replica size")
 	}
 	stages {
 		stage('initialise') {
@@ -78,14 +79,15 @@ pipeline {
 									return it.count() > 0
 								}
 							}
+              def no_of_replicas = "{params.NO_OF_REPLICAS}".toInteger()
 							if (!openshift.selector('sts', "${APP_NAME}-amq").exists()) {
-								def amqSts = openshift.newApp("amq-broker-72-persistence-clustered-ssl", "-p APPLICATION_NAME=${params.APP_NAME}", "-p AMQ_QUEUES=demoQueue", "-p AMQ_ADDRESSES=demoTopic", "-p AMQ_USER=amq-demo-user", "-p AMQ_PASSWORD=passw0rd", "-p AMQ_ROLE=amq", "-p AMQ_SECRET=amq-app-secret", "-p AMQ_DATA_DIR=/opt/amq/data", "-p AMQ_DATA_DIR_LOGGING=true", "-p IMAGE=docker-registry.default.svc:5000/${env.NAMESPACE}/amq7-custom", "-p AMQ_PROTOCOL=openwire,amqp,stomp,mqtt,hornetq", "-p VOLUME_CAPACITY=200Mi", "-p AMQ_TRUSTSTORE=amq-broker.jks", "-p AMQ_KEYSTORE=amq-broker.jks", "-p AMQ_TRUSTSTORE_PASSWORD=passw0rd", "-p AMQ_KEYSTORE_PASSWORD=passw0rd", "-p AMQ_CLUSTERED=true", "-p AMQ_REPLICAS=3").narrow('pods')
+								def amqSts = openshift.newApp("amq-broker-72-persistence-clustered-ssl", "-p APPLICATION_NAME=${params.APP_NAME}", "-p AMQ_QUEUES=demoQueue", "-p AMQ_ADDRESSES=demoTopic", "-p AMQ_USER=amq-demo-user", "-p AMQ_PASSWORD=passw0rd", "-p AMQ_ROLE=amq", "-p AMQ_SECRET=amq-app-secret", "-p AMQ_DATA_DIR=/opt/amq/data", "-p AMQ_DATA_DIR_LOGGING=true", "-p IMAGE=docker-registry.default.svc:5000/${env.NAMESPACE}/amq7-custom", "-p AMQ_PROTOCOL=openwire,amqp,stomp,mqtt,hornetq", "-p VOLUME_CAPACITY=200Mi", "-p AMQ_TRUSTSTORE=amq-broker.jks", "-p AMQ_KEYSTORE=amq-broker.jks", "-p AMQ_TRUSTSTORE_PASSWORD=passw0rd", "-p AMQ_KEYSTORE_PASSWORD=passw0rd", "-p AMQ_CLUSTERED=true", "-p AMQ_REPLICAS=${no_of_replicas}").narrow('sts')
 								timeout(10) {
 									amqSts.watch {
 
 										// Within the body, the variable 'it' is bound to the watched Selector (i.e. builds)
 										echo "So far, ${amqSts.name()} has created Stateful Sets: ${it.names()}"
-										return it.count() == 3
+										return it.object().status.readyReplicas == no_of_replicas
 									}
 								}
 							}
