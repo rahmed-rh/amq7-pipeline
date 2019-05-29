@@ -149,7 +149,8 @@ pipeline {
         def currentPodsSelector = openshift.selector("${podName}")
         currentPodsSelector.watch {
          echo "Waiting for Pod ${podName} to recreate"
-         return it.object().status.containerStatuses[0].ready == true
+         echo "${currentPodsSelector}"
+         return currentPodsSelector.object().status.containerStatuses[0].ready == true
         }
        }
       }
