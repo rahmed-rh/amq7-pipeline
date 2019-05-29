@@ -96,7 +96,7 @@ pipeline {
         }
         openshift.tag("${env.NAMESPACE}/amq7-custom:latest", "${env.NAMESPACE}/amq7-custom:1.${env.BUILD_NUMBER}")
        }
-       if (!openshift.selector('sts', "${APP_NAME}-amq").exists()) {
+       if (!openshift.selector('sts', "${params.APP_NAME}-amq").exists()) {
         env.APP_ALREADY_EXISTS = false;
        }
       }
@@ -138,10 +138,10 @@ pipeline {
      openshift.withCluster() {
       //openshift.verbose() // set logging level for subsequent operations executed (loglevel=8)
        openshift.withProject("${env.NAMESPACE}") {
-       def amqSts = openshift.selector('sts', "${APP_NAME}-amq").object()
+       def amqSts = openshift.selector('sts', "${params.APP_NAME}-amq").object()
        amqSts.spec.template.spec.containers[0].image="${env.NAMESPACE}/amq7-custom:1.${env.BUILD_NUMBER}"
        openshift.apply(amqSts)
-       def podsSelector = openshift.selector('po', [app: "${APP_NAME}-amq"])
+       def podsSelector = openshift.selector('po', [app: "${params.APP_NAME}-amq"])
        podsSelector.withEach {
         def podName = "${it.name()}"
         echo "Pod: ${podName} will be deleted"
