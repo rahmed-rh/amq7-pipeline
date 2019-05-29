@@ -139,6 +139,7 @@ pipeline {
       //openshift.verbose() // set logging level for subsequent operations executed (loglevel=8)
        openshift.withProject("${env.NAMESPACE}") {
        def amqSts = openshift.selector('sts', "${params.APP_NAME}-amq").object()
+        echo "${amqSts.spec.template.spec.containers[0].image}"
        amqSts.spec.template.spec.containers[0].image="docker-registry.default.svc:5000/${env.NAMESPACE}/amq7-custom:1.${env.BUILD_NUMBER}"
        openshift.apply(amqSts)
        def podsSelector = openshift.selector('po', [app: "${params.APP_NAME}-amq"])
