@@ -148,25 +148,23 @@ pipeline {
 								def podName = "${it.name()}"
 								echo "Pod: ${podName} will be deleted"
 								def result = it.delete()
-                echo "The logs operation require ${result.actions.size()} oc interactions"
+                echo "Pod Delete log action.size() = [${result.actions.size()}]"
+                echo "Pod Delete log action[0].cmd = [${result.actions[0].cmd}]"
+                echo "Pod Delete log action[0].out = [${result.actions[0].out}]"
+                echo "Pod Delete log action[0].err = [${result.actions[0].err}]"
 
-                   // You can even see exactly what oc command was executed.
-                   echo "Logs executed: ${result.actions[0].cmd}"
- echo "Executed out: ${result.actions[0].out}"
- echo "Executed out: ${result.actions[0].err}"
-
-	def currentPodsSelector = openshift.selector("${podName}")
+	               //def currentPodsSelector = openshift.selector("${podName}")
 								timeout(5) {
-									currentPodsSelector.watch {
+									it.watch {
 										// Within the body, the variable 'it' is bound to the watched Selector (i.e. builds)
 										echo "Pod: ${podName} waiting for the Pod definition to be updated with the new image"
-										return podsSelector.object().spec.containers[0].image.equals(newContainerImage)
+										return it.object().spec.containers[0].image.equals(newContainerImage)
 
 									}
-                  currentPodsSelector.watch {
+                  it.watch {
                     echo "Waiting for Pod ${podName} to recreate"
                     echo "${currentPodsSelector}"
-                    return currentPodsSelector.object().status.containerStatuses[0].ready == true
+                    return it.object().status.containerStatuses[0].ready == true
                   }
                 }
 								}
