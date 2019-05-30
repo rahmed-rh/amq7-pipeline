@@ -161,7 +161,7 @@ pipeline {
                       echo "Waiting for Pod ${podName} to recreate & Pod definition to be updated with the new image"
   										echo "Current Image is -- ${it.object().spec.template.spec.containers[0].image}"
   										echo "Compare Image is -- ${newContainerImage}"
-  										if (it.object().containerStatuses[0].ready == true &&  it.object().spec.containers[0].image.equals(newContainerImage)) {
+  										if (it.object()!=null && it.object().containerStatuses[0].ready == true &&  it.object().spec.containers[0].image.equals(newContainerImage)) {
   											allDone = false
   										}
   									}
