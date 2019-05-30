@@ -153,20 +153,20 @@ pipeline {
 								echo "Pod Delete log -- action[0].out = [${result.actions[0].out}]"
 								echo "Pod Delete log -- action[0].err = [${result.actions[0].err}]"
 
-								//def currentPodsSelector = openshift.selector("${podName}")
+								def currentPodsSelector = openshift.selector("${podName}")
 								timeout(5) {
-									it.watch {
-										// Within the body, the variable 'it' is bound to the watched Selector (i.e. builds)
-										echo "Pod: ${podName} waiting for the Pod definition to be updated with the new image"
-										echo "Current Image is -- ${it.object().spec.template.spec.containers[0].image}"
-										echo "Compare Image is -- ${newContainerImage}"
-										return it.object().spec.containers[0].image.equals(newContainerImage)
+                  currentPodsSelector.watch {
+                    def allDone = true
+  									it.withEach {
+                      echo "Waiting for Pod ${podName} to recreate & Pod definition to be updated with the new image"
+  										echo "Current Image is -- ${it.object().spec.template.spec.containers[0].image}"
+  										echo "Compare Image is -- ${newContainerImage}"
+  										if (it.object().containerStatuses[0].ready == true &&  it.object().spec.containers[0].image.equals(newContainerImage)) {
+  											allDone = false
+  										}
+  									}
+  									return allDone;
 
-									}
-									it.watch {
-										echo "Waiting for Pod ${podName} to recreate"
-										echo "${currentPodsSelector}"
-										return it.object().status.containerStatuses[0].ready == true
 									}
 								}
 							}
