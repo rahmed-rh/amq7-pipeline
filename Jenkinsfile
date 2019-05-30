@@ -156,7 +156,7 @@ pipeline {
 								def currentPodsSelector = openshift.selector("${podName}")
 								timeout(5) {
 									currentPodsSelector.watch {
-										def allDone = true
+										def allDone = false
 										it.withEach {
 											echo "Waiting for Pod ${podName} to recreate & Pod definition to be updated with the new image"
 											if (it != null && it.object() != null) {
@@ -165,7 +165,7 @@ pipeline {
 												echo "Compare Image is -- ${newContainerImage}"
                         echo "containerStatuses -- ${it.object().containerStatuses[0]}"
 												if (it.object().containerStatuses[0]!=null && it.object().containerStatuses[0].ready == true && it.object().spec.containers[0].image.equals(newContainerImage)) {
-													allDone = false
+													allDone = true
 												}
 											}
 										}
