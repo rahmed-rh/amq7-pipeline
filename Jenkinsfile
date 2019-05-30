@@ -155,23 +155,24 @@ pipeline {
  echo "Executed out: ${result.actions[0].out}"
  echo "Executed out: ${result.actions[0].err}"
 
-
-								timeout(2) {
-									podsSelector.watch {
+	def currentPodsSelector = openshift.selector("${podName}")
+								timeout(5) {
+									currentPodsSelector.watch {
 										// Within the body, the variable 'it' is bound to the watched Selector (i.e. builds)
 										echo "Pod: ${podName} waiting for the Pod definition to be updated with the new image"
 										return podsSelector.object().spec.containers[0].image.equals(newContainerImage)
 
 									}
+                  currentPodsSelector.watch {
+                    echo "Waiting for Pod ${podName} to recreate"
+                    echo "${currentPodsSelector}"
+                    return currentPodsSelector.object().status.containerStatuses[0].ready == true
+                  }
+                }
 								}
 
-								def currentPodsSelector = openshift.selector("${podName}")
-								currentPodsSelector.watch {
-									echo "Waiting for Pod ${podName} to recreate"
-									echo "${currentPodsSelector}"
-									return currentPodsSelector.object().status.containerStatuses[0].ready == true
-								}
-							}
+
+
 						}
 					}
 				}
