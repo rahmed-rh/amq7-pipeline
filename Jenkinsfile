@@ -155,23 +155,27 @@ pipeline {
 
 								def currentPodsSelector = openshift.selector("${podName}")
 								timeout(5) {
-									currentPodsSelector.watch {
-										def allDone = false
-										it.withEach {
-											echo "Waiting for Pod ${podName} to recreate & Pod definition to be updated with the new image"
-											if (it != null && it.object() != null) {
-                        echo "object is -- ${it.object()}"
-												echo "Current Image is -- ${it.object().spec.containers[0].image}"
-												echo "Compare Image is -- ${newContainerImage}"
-                        echo "containerStatuses -- ${it.object().containerStatuses[0]}"
-												if (it.object().containerStatuses[0]!=null && it.object().containerStatuses[0].ready == true && it.object().spec.containers[0].image.equals(newContainerImage)) {
-													allDone = true
-												}
-											}
-										}
-										return allDone;
+                  currentPodsSelector.untilEach {
+            return it.object().status.phase == 'Running'
+        }
+         currentPodsSelector = openshift.selector("${podName}")
+        currentPodsSelector.watch {
+          def allDone = false
+          it.withEach {
+            echo "Waiting for Pod ${podName} to recreate & Pod definition to be updated with the new image"
+            if (it != null && it.object() != null) {
+              echo "object is -- ${it.object()}"
+              echo "Current Image is -- ${it.object().spec.containers[0].image}"
+              echo "Compare Image is -- ${newContainerImage}"
+              echo "containerStatuses -- ${it.object().containerStatuses[0]}"
+              if (it.object().containerStatuses[0]!=null && it.object().containerStatuses[0].ready == true && it.object().spec.containers[0].image.equals(newContainerImage)) {
+                allDone = true
+              }
+            }
+          }
+          return allDone;
 
-									}
+        }
 								}
 							}
 
