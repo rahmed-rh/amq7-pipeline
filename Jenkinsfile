@@ -162,7 +162,7 @@ pipeline {
 											if (it != null && it.object() != null) {
 												echo "Current Image is -- ${it.object().spec.containers[0].image}"
 												echo "Compare Image is -- ${newContainerImage}"
-												if (it.object().containerStatuses[0].ready == true && it.object().spec.containers[0].image.equals(newContainerImage)) {
+												if (it.object().containerStatuses[0]!=null && it.object().containerStatuses[0].ready == true && it.object().spec.containers[0].image.equals(newContainerImage)) {
 													allDone = false
 												}
 											}
