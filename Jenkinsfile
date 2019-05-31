@@ -156,13 +156,14 @@ pipeline {
 								def currentPodsSelector = openshift.selector("${podName}")
 								timeout(5) {
                   currentPodsSelector.watch {
-                  return it.count() < 2
+                  return it.count() == 1 && it.object().status.phase == 'Running'
                   }
                   // tru again to check that POD is running again
                   currentPodsSelector = openshift.selector("${podName}")
                   currentPodsSelector.untilEach {
-                  echo "Waiting for Pod ${it.object()} to be running again"
-                  return it.object().status.phase == 'Running'
+                  echo "Waiting for Pod ${podName} to recreate & Pod definition to be updated with the new image"
+
+                  return it.object().containerStatuses[0]!=null && it.object().containerStatuses[0].ready == true && it.object().spec.containers[0].image == newContainerImage
                   }
 
 								}
