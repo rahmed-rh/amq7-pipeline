@@ -155,7 +155,7 @@ pipeline {
 								echo "Pod Delete log -- action[0].cmd = [${result.actions[0].cmd}]"
 								echo "Pod Delete log -- action[0].out = [${result.actions[0].out}]"
 								echo "Pod Delete log -- action[0].err = [${result.actions[0].err}]"
-                sleep(time: 2, unit: 'SECONDS')
+                sleep(time: 5, unit: 'SECONDS')
 
 
 								timeout(5) {
@@ -163,7 +163,7 @@ pipeline {
   									echo "Waiting for ${it.name()} to be ready"
   									return it.object().status.readyReplicas == no_of_replicas
   								}
-                  // try again to check that POD is running
+                  // try again to check that POD is running with the latest images -- DOUBLE CHECK --
                   def currentPodsSelector = openshift.selector("${podName}")
                   currentPodsSelector.watch {
                   echo "Waiting for Pod ${podName} to recreate & Pod definition to be updated with the new image"
