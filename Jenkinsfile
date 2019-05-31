@@ -139,11 +139,13 @@ pipeline {
 						//openshift.verbose() // set logging level for subsequent operations executed (loglevel=8)
 						openshift.withProject("${env.NAMESPACE}") {
               def no_of_replicas = Integer.parseInt("${params.NO_OF_REPLICAS}")
-							def amqSts = openshift.selector('sts', "${params.APP_NAME}-amq")
+							def amqStsSelector = openshift.selector('sts', "${params.APP_NAME}-amq")
+              def amqSts = amqStsSelector.object()
 							def newContainerImage = "docker-registry.default.svc:5000/${env.NAMESPACE}/amq7-custom:1.${env.BUILD_NUMBER}"
-							echo "Old Image is -- ${amqSts.object().spec.template.spec.containers[0].image}"
-							amqSts.object().spec.template.spec.containers[0].image = newContainerImage
-							openshift.apply(amqSts.object())
+							echo "Old Image is -- ${amqSts.spec.template.spec.containers[0].image}"
+							amqSts.spec.template.spec.containers[0].image = newContainerImage
+              echo "New Image is -- ${amqSts.spec.template.spec.containers[0].image}"
+							openshift.apply(amqSts)
 							def podsSelector = openshift.selector('po', [app: "${params.APP_NAME}-amq"])
 							podsSelector.withEach {
 								def podName = "${it.name()}"
@@ -157,7 +159,7 @@ pipeline {
 
 
 								timeout(5) {
-                  amqSts.watch {
+                  amqStsSelector.watch {
   									echo "Waiting for ${it.name()} to be ready"
   									return it.object().status.readyReplicas == no_of_replicas
   								}
@@ -166,7 +168,7 @@ pipeline {
                   currentPodsSelector.watch {
                   echo "Waiting for Pod ${podName} to recreate & Pod definition to be updated with the new image"
                   echo "Current Image is -- ${it.object().spec.containers[0].image}"
-                                      echo "Compare Image is -- ${newContainerImage}"
+                  echo "Compare Image is -- ${newContainerImage}"
 
 
                   return it.object().spec.containers[0].image == newContainerImage
