@@ -138,11 +138,12 @@ pipeline {
 					openshift.withCluster() {
 						//openshift.verbose() // set logging level for subsequent operations executed (loglevel=8)
 						openshift.withProject("${env.NAMESPACE}") {
-							def amqSts = openshift.selector('sts', "${params.APP_NAME}-amq").object()
+              def no_of_replicas = Integer.parseInt("${params.NO_OF_REPLICAS}")
+							def amqSts = openshift.selector('sts', "${params.APP_NAME}-amq")
 							def newContainerImage = "docker-registry.default.svc:5000/${env.NAMESPACE}/amq7-custom:1.${env.BUILD_NUMBER}"
-							echo "Old Image is -- ${amqSts.spec.template.spec.containers[0].image}"
-							amqSts.spec.template.spec.containers[0].image = newContainerImage
-							openshift.apply(amqSts)
+							echo "Old Image is -- ${amqSts.object().spec.template.spec.containers[0].image}"
+							amqSts.object().spec.template.spec.containers[0].image = newContainerImage
+							openshift.apply(amqSts.object())
 							def podsSelector = openshift.selector('po', [app: "${params.APP_NAME}-amq"])
 							podsSelector.withEach {
 								def podName = "${it.name()}"
@@ -153,13 +154,15 @@ pipeline {
 								echo "Pod Delete log -- action[0].out = [${result.actions[0].out}]"
 								echo "Pod Delete log -- action[0].err = [${result.actions[0].err}]"
                 sleep(time: 2, unit: 'SECONDS')
-								def currentPodsSelector = openshift.selector("${podName}")
+
+
 								timeout(5) {
-                  currentPodsSelector.watch {
-                  return it.count() == 1 && it.object().status.phase == 'Running'
-                  }
-                  // tru again to check that POD is running again
-                  currentPodsSelector = openshift.selector("${podName}")
+                  amqSts.watch {
+  									echo "Waiting for ${it.name()} to be ready"
+  									return it.object().status.readyReplicas == no_of_replicas
+  								}
+                  // try again to check that POD is running
+                  def currentPodsSelector = openshift.selector("${podName}")
                   currentPodsSelector.untilEach {
                   echo "Waiting for Pod ${podName} to recreate & Pod definition to be updated with the new image"
 
